@@ -48,7 +48,7 @@ You can run the script with the following options:
 
 `--force-check` forces DSM to check if there's a DSM update available.
 
-`--dry-run` will just notify you that the script has detected a newer DSm version is available, without downloading or installing it.
+`--dry-run` will just notify you that the script has detected that a newer DSM version is available, without downloading or installing it.
 
 ### To run the script via task scheduler
 
