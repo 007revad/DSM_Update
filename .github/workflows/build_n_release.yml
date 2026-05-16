@@ -1,4 +1,4 @@
-name: Build n Release
+name: Build n Release ${{ github.event.repository.name }}
 on:
   release:
     types: [published]
@@ -22,7 +22,7 @@ jobs:
           fi
       - name: Create zip
         run: |
-          zip ${{ github.event.repository.name }}.zip syno_recover_data.sh
+          zip ${{ github.event.repository.name }}.zip dsm_update.sh
       - name: Upload zip to release
         uses: softprops/action-gh-release@v2
         with:
