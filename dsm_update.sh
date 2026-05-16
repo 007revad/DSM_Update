@@ -117,7 +117,7 @@ log "========================================"
 log "DSM update check started${DRY_RUN:+ (dry-run mode)}"
 
 # Get model name for notifications
-MODEL=$(synogetkeyvalue /etc/syno_info upnpmodelname 2>/dev/null || echo "Unknown")
+MODEL=$(synogetkeyvalue /etc.defaults/synoinfo.conf upnpmodelname || echo "Unknown")
 log "Model: $MODEL"
 
 # Optionally force a fresh check from Synology servers
