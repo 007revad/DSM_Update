@@ -1,6 +1,6 @@
 v1.0.2
 - Notifications now working.
-  - For notifications to work you need to install the DSM_Notify package from:
+  - For notifications to work in DSM 7 you need to install the DSM_Notify package from:
     https://github.com/007revad/DSM_Notify
 
 v1.0.1
