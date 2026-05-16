@@ -19,6 +19,25 @@ Script to automatically download the correct pat file and update DSM using the d
 2. Save the download zip file to a folder on the Synology.
 3. Unzip the zip file.
 
+### Configuration
+
+Optionally you can to edit the variables at the top of the script. The default settings are: 
+```
+# Temporary directory for .pat downloads (cleaned up after install)
+# $$ gets the PID of the script
+PAT_DIR="/tmp/dsm_update_$$"
+
+# Log file
+LOG_FILE="/var/log/dsm_update.log"
+
+# Maximum log file size in bytes before rotation (default 1MB)
+LOG_MAX_SIZE=1048576
+
+# synodsmnotify user to receive notifications (leave empty to notify all admins)
+# If not empty all admins and users will receive notifications
+NOTIFY_USER=""
+```
+
 ### To run the script via task scheduler
 
 See [How to run from task scheduler](https://github.com/007revad/DSM_Update/blob/main/how_to_run_from_scheduler.md)
@@ -48,12 +67,12 @@ If the script won't run check the following:
    sudo chmod +x "/volume1/scripts/dsm_update.sh"
    ```
 
-### Screenshots
+<!--- ### Screenshots --->
 
 <!--- <p align="center">Description of image 1 goes here</p> --->
-<p align="center"><img src="/images/IMAGE_NAME.png"></p>
+<!--- <p align="center"><img src="/images/IMAGE_NAME.png"></p> --->
 
-<br>
+<!--- <br> --->
 
 <!--- <p align="center">Description of image 2 goes here</p> --->
-<p align="center"><img src="/images/IMAGE_NAME.png"></p>
+<!--- <p align="center"><img src="/images/IMAGE_NAME.png"></p> --->
