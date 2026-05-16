@@ -1,6 +1,6 @@
 v1.0.1
 - Bug fix for not getting model name.
-- Note: Notifications currently now working.
+- Note: Notifications currently not working.
 
 v1.0.0
 - First release.
