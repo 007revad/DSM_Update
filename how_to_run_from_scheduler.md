@@ -8,13 +8,11 @@ To run a script from Task Scheduler follow these steps:
 2. Select **User-defined script**.
 3. Enter a task name.
 4. Select **root** as the user (The script needs to run as root).
-5. Untick **Enable** so it does **not** run on a schedule.
+5. Set a schedule, or untick **Enable** so it does **not** run on a schedule.
 6. Click **Task Settings**.
 7. In the box under **User-defined script** type the path to the script. 
     - e.g. If you saved the script to a shared folder on volume 1 called "scripts" you'd type: **/volume1/scripts/dsm_update.sh**
 8. Click **OK** to save the settings.
-9. Click on the task - but **don't** enable it - then click **Run**.
-10. Once the script has run you can delete the task, or keep in case you need it again.
 
 **Here's some screenshots showing what needs to be set:**
 
@@ -27,5 +25,5 @@ To run a script from Task Scheduler follow these steps:
 <p align="center">Step 3</p>
 <p align="center"><img src="images/schedule-3.png"></p>
 
-<p align="center">Step 4</p>
-<p align="center"><img src="images/schedule-4.png"></p>
+<!--- <p align="center">Step 4</p> --->
+<!--- <p align="center"><img src="images/schedule-4.png"></p> --->
