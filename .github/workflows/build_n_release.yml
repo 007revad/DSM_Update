@@ -1,4 +1,4 @@
-name: Build n Release ${{ github.event.repository.name }}
+name: Build n Release
 on:
   release:
     types: [published]
