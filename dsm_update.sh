@@ -69,10 +69,10 @@ rotate_log(){
 #------------------------------------------------------------------------------
 # Notifications
 
-notify(){ 
+# DSM 6: plain string title and message are accepted by synodsmnotify
+_notify_dsm6(){
     local title="$1"
     local msg="$2"
-    log "NOTIFY: $title - $msg"
     if command -v synodsmnotify > /dev/null 2>&1; then
         if [[ -n "$NOTIFY_USER" ]]; then
             synodsmnotify "@administrators" "$title" "$msg" 2>/dev/null || true
@@ -80,6 +80,124 @@ notify(){
         else
             synodsmnotify "@administrators" "$title" "$msg" 2>/dev/null || true
         fi
+    fi
+}
+
+# DSM 7: uses dsm_notify package i18n keys via synodsmnotify.
+# Requires the dsm_notify package to be installed.
+# synodsmnotify -c SYNO.SDS._ThirdParty.App.dsm_notify @administrators title_key msg_key [arg0] [arg1] [arg2]
+_notify_dsm7(){
+    local title_key="$1"
+    local msg_key="$2"
+    shift 2
+    if [[ ! -d /var/packages/dsm_notify ]]; then
+        log "NOTIFY: dsm_notify package not installed, skipping desktop notification"
+        return 0
+    fi
+    if command -v synodsmnotify > /dev/null 2>&1; then
+        if [[ -n "$NOTIFY_USER" ]]; then
+            synodsmnotify -c SYNO.SDS._ThirdParty.App.dsm_notify \
+                "@administrators" \
+                "dsm_notify:app1:${title_key}" "dsm_notify:app1:${msg_key}" \
+                "$@" 2>/dev/null || true
+            synodsmnotify -c SYNO.SDS._ThirdParty.App.dsm_notify \
+                "$NOTIFY_USER" \
+                "dsm_notify:app1:${title_key}" "dsm_notify:app1:${msg_key}" \
+                "$@" 2>/dev/null || true
+        else
+            synodsmnotify -c SYNO.SDS._ThirdParty.App.dsm_notify \
+                "@administrators" \
+                "dsm_notify:app1:${title_key}" "dsm_notify:app1:${msg_key}" \
+                "$@" 2>/dev/null || true
+        fi
+    fi
+}
+
+# notify TYPE [ARGS...]
+#   TYPE: available | download_failed | update_failed | error | starting | success | warning
+#
+# DSM 7 string keys (dsm_notify package), with {0} {1} {2} placeholders:
+#   msg_available_dryrun  - {0}=UPDATE_TYPE {1}=BUILD {2}=NANO
+#   msg_available         - {0}=UPDATE_TYPE {1}=BUILD {2}=NANO
+#   msg_starting          - {0}=UPDATE_TYPE {1}=BUILD {2}=NANO
+#   msg_success           - {0}=UPDATE_TYPE
+#   msg_download_failed   - {0}=PAT_FILENAME
+#   msg_failed            - (no placeholders)
+#   msg_error             - {0}=error text
+#   msg_warning           - {0}=warning text
+notify(){
+    local type="$1"
+    shift
+    local dry_run_label="${DRY_RUN:+ (dry-run)}"
+
+    if [[ "$DSM_MAJOR" -ge 7 ]]; then
+        case "$type" in
+            available)
+                log "NOTIFY: DSM update available${dry_run_label} - $*"
+                if [[ "$DRY_RUN" -eq 1 ]]; then
+                    _notify_dsm7 "title_update_dryrun" "msg_available_dryrun" "$@"
+                else
+                    _notify_dsm7 "title_update" "msg_available" "$@"
+                fi
+                ;;
+            download_failed)
+                log "NOTIFY: DSM update download failed - $*"
+                _notify_dsm7 "title_error" "msg_download_failed" "$@"
+                ;;
+            update_failed)
+                log "NOTIFY: DSM update failed"
+                _notify_dsm7 "title_failed" "msg_failed"
+                ;;
+            error)
+                log "NOTIFY: DSM update error - $*"
+                _notify_dsm7 "title_error" "msg_error" "$@"
+                ;;
+            starting)
+                log "NOTIFY: DSM update starting - $*"
+                _notify_dsm7 "title_starting" "msg_starting" "$@"
+                ;;
+            success)
+                log "NOTIFY: DSM update success - $*"
+                _notify_dsm7 "title_success" "msg_success" "$@"
+                ;;
+            warning)
+                log "NOTIFY: DSM update warning - $*"
+                _notify_dsm7 "title_warning" "msg_warning" "$@"
+                ;;
+            *)
+                log "NOTIFY: unknown type '$type'"
+                ;;
+        esac
+    else
+        # DSM 6: plain string notifications
+        case "$type" in
+            available)
+                local dsm6_msg="[$MODEL] $UPDATE_TYPE update available: build $BUILD nano $NANO."
+                [[ "$DRY_RUN" -eq 1 ]] && dsm6_msg="$dsm6_msg Dry-run mode, no action taken."
+                _notify_dsm6 "DSM Update Available${dry_run_label}" "$dsm6_msg"
+                ;;
+            download_failed)
+                _notify_dsm6 "DSM Update Error" "[$MODEL] Download failed for $*."
+                ;;
+            update_failed)
+                _notify_dsm6 "DSM Update Failed" "[$MODEL] synoupgrade --patch failed. Check $LOG_FILE."
+                ;;
+            error)
+                _notify_dsm6 "DSM Update Error" "[$MODEL] $*"
+                ;;
+            starting)
+                _notify_dsm6 "DSM Update Starting" "[$MODEL] Applying $UPDATE_TYPE update: build $BUILD nano $NANO. NAS will reboot."
+                ;;
+            success)
+                _notify_dsm6 "DSM Update Success" "[$MODEL] $UPDATE_TYPE update applied successfully. NAS is rebooting."
+                ;;
+            warning)
+                _notify_dsm6 "DSM Update Warning" "[$MODEL] $*"
+                ;;
+            *)
+                log "NOTIFY: unknown type '$type'"
+                ;;
+        esac
     fi
 }
 
@@ -120,6 +238,10 @@ log "DSM update check started${DRY_RUN:+ (dry-run mode)}"
 MODEL=$(synogetkeyvalue /etc.defaults/synoinfo.conf upnpmodelname || echo "Unknown")
 log "Model: $MODEL"
 
+# Get DSM major version for notification method selection
+DSM_MAJOR=$(synogetkeyvalue /etc.defaults/synoinfo.conf majorversion || echo "7")
+log "DSM major version: $DSM_MAJOR"
+
 # Optionally force a fresh check from Synology servers
 if [[ "$FORCE_CHECK" -eq 1 ]]; then
     log "Running synoupgrade --check ..."
@@ -138,7 +260,7 @@ fi
 
 if [[ -z "$UPDATE_JSON" ]]; then
     log "ERROR: Unable to retrieve update information."
-    notify "DSM Update Error" "[$MODEL] Unable to retrieve update information."
+    notify "error" "Unable to retrieve update information."
     exit 1
 fi
 
@@ -175,13 +297,13 @@ case "$UPDATE_TYPE" in
         PAT_FILENAME=$(echo "$URL" | grep -o '[^/]*\.pat$' | sed 's/%2B/+/g')
         if [[ -z "$URL" ]]; then
             log "ERROR: Could not extract download URL from update JSON for system update."
-            notify "DSM Update Error" "[$MODEL] Could not extract download URL for system update."
+            notify "error" "Could not extract download URL for system update."
             exit 1
         fi
         ;;
     *)
         log "ERROR: Unknown update type '$UPDATE_TYPE' - manual intervention required."
-        notify "DSM Update Error" "[$MODEL] Unknown update type '$UPDATE_TYPE'. Manual update required."
+        notify "error" "Unknown update type '$UPDATE_TYPE'. Manual update required."
         exit 1
         ;;
 esac
@@ -191,7 +313,7 @@ log "Filename: $PAT_FILENAME"
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
     log "DRY-RUN: Would download and install: $PAT_FILENAME"
-    notify "DSM Update Available (dry-run)" "[$MODEL] $UPDATE_TYPE update available: build $BUILD nano $NANO. Dry-run mode, no action taken."
+    notify "available" "$UPDATE_TYPE" "$BUILD" "$NANO"
     exit 0
 fi
 
@@ -202,14 +324,14 @@ PAT_FILE="${PAT_DIR}/${PAT_FILENAME}"
 log "Downloading $PAT_FILENAME ..."
 if ! wget -q -O "$PAT_FILE" "$URL"; then
     log "ERROR: Download failed for $URL"
-    notify "DSM Update Error" "[$MODEL] Download failed for $PAT_FILENAME."
+    notify "download_failed" "$PAT_FILENAME"
     exit 1
 fi
 
 # Verify file exists and is non-empty
 if [[ ! -s "$PAT_FILE" ]]; then
     log "ERROR: Downloaded file is empty or missing: $PAT_FILE"
-    notify "DSM Update Error" "[$MODEL] Downloaded .pat file is empty."
+    notify "download_failed" "$PAT_FILENAME (empty)"
     exit 1
 fi
 
@@ -221,7 +343,7 @@ if [[ -n "$MD5" ]]; then
     ACTUAL_MD5=$(md5sum "$PAT_FILE" | cut -d' ' -f1)
     if [[ "$ACTUAL_MD5" != "$MD5" ]]; then
         log "ERROR: MD5 mismatch! Expected=$MD5 Got=$ACTUAL_MD5"
-        notify "DSM Update Error" "[$MODEL] MD5 verification failed for $PAT_FILENAME."
+        notify "error" "MD5 verification failed for $PAT_FILENAME."
         exit 1
     fi
     log "MD5 verified OK ($MD5)"
@@ -231,7 +353,7 @@ fi
 
 # Apply the update
 log "Applying update: synoupgrade --patch $PAT_FILE"
-notify "DSM Update Starting" "[$MODEL] Applying $UPDATE_TYPE update: build $BUILD nano $NANO. NAS will reboot."
+notify "starting" "$UPDATE_TYPE" "$BUILD" "$NANO"
 
 PATCH_OUTPUT=$(synoupgrade --patch "$PAT_FILE" 2>&1)
 PATCH_EXIT=$?
@@ -240,17 +362,17 @@ log "synoupgrade output: $PATCH_OUTPUT"
 
 if [[ "$PATCH_EXIT" -ne 0 ]]; then
     log "ERROR: synoupgrade --patch failed with exit code $PATCH_EXIT"
-    notify "DSM Update Failed" "[$MODEL] synoupgrade --patch failed. Check $LOG_FILE for details."
+    notify "update_failed"
     exit 1
 fi
 
 # Check output JSON for success field
 if echo "$PATCH_OUTPUT" | grep -q '"success":true'; then
     log "Update applied successfully."
-    notify "DSM Update Success" "[$MODEL] $UPDATE_TYPE update applied successfully. NAS is rebooting."
+    notify "success" "$UPDATE_TYPE"
 else
     log "WARNING: synoupgrade exited 0 but success:true not found in output."
-    notify "DSM Update Warning" "[$MODEL] Update may not have applied correctly. Check $LOG_FILE."
+    notify "warning" "Update may not have applied correctly. Check $LOG_FILE."
 fi
 
 log "DSM update script finished."

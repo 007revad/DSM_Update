@@ -1,3 +1,8 @@
+v1.0.2
+- Notifications now working.
+  - For notifications to work you need to install the DSM_Notify package from:
+    https://github.com/007revad/DSM_Notify
+
 v1.0.1
 - Bug fix for not getting model name.
 - Note: Notifications currently not working.
