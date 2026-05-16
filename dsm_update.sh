@@ -239,7 +239,7 @@ MODEL=$(synogetkeyvalue /etc.defaults/synoinfo.conf upnpmodelname || echo "Unkno
 log "Model: $MODEL"
 
 # Get DSM major version for notification method selection
-DSM_MAJOR=$(synogetkeyvalue /etc.defaults/synoinfo.conf majorversion || echo "7")
+DSM_MAJOR=$(synogetkeyvalue /etc.defaults/VERSION majorversion || echo "7")
 log "DSM major version: $DSM_MAJOR"
 
 # Optionally force a fresh check from Synology servers
