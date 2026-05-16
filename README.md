@@ -1,4 +1,4 @@
-# <img src="images/icon.png" width="40"> DSM Update
+# <img src="images/dsm_48.ico" width="40"> DSM Update
 
 <a href="https://github.com/007revad/DSM_Update/releases"><img src="https://img.shields.io/github/release/007revad/DSM_Update.svg"></a>
 [![Github Releases](https://img.shields.io/github/downloads/007revad/DSM_Update/total.svg)](https://github.com/007revad/DSM_Update/releases)
@@ -7,11 +7,9 @@
 [![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/007revad)
 <!--- [![committers.top badge](https://user-badge.committers.top/australia/007revad.svg)](https://user-badge.committers.top/australia/007revad) --->
 
-# Enable "Settings > General > Sponsorship" in the new repo
-
 ### Description
 
-Description goes here
+Script to automatically download the correct pat file and update DSM using the downloaded pat file.
 
 ### Download the script
 
