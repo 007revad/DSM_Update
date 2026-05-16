@@ -38,6 +38,18 @@ LOG_MAX_SIZE=1048576
 NOTIFY_USER=""
 ```
 
+### Options
+
+You can run the script with the following options:
+```
+--force-check
+--dry-run
+```
+
+`--force-check` forces DSM to check if there's a DSM update available.
+
+`--dry-run` will just notify you that the script has detected a newer DSm version is available, without downloading or installing it.
+
 ### To run the script via task scheduler
 
 See [How to run from task scheduler](https://github.com/007revad/DSM_Update/blob/main/how_to_run_from_scheduler.md)
